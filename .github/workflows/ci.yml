@@ -1,0 +1,12 @@
+name: CI
+
+on:
+  pull_request
+
+jobs:
+  runner:
+    uses: pinnacles/common-cicd-actions/.github/workflows/ci.yml@v0.2.1
+    with:
+      use_go: true
+      go_version: 1.18
+      use_mysql: false
