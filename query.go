@@ -69,16 +69,20 @@ func (q *querySelectBuilder) ToSQL(res interface{}) (*SQL, error) {
 		meta = metas[s.TableName()]
 	}
 
-	selectColumns := "*"
+	selectColumns := []string{"*"}
 	if len(q.fields) > 0 {
 		if q.fields[0] != "*" {
-			selectColumns = strings.Join(q.fields, ",")
+			selectColumns = q.fields
 		}
 	} else {
-		selectColumns = strings.Join(meta.Fields, ",")
+		selectColumns = meta.Fields
+	}
+	quoted := make([]string, 0, len(selectColumns))
+	for _, col := range selectColumns {
+		quoted = append(quoted, fmt.Sprintf("`%s`", col))
 	}
 
-	syntax := []string{fmt.Sprintf("SELECT %s FROM %s", selectColumns, meta.TableName)}
+	syntax := []string{fmt.Sprintf("SELECT %s FROM `%s`", strings.Join(quoted, ","), meta.TableName)}
 	args := []interface{}{}
 	if q.clause != "" {
 		syntax = append(syntax, fmt.Sprintf("WHERE %s", q.clause))
