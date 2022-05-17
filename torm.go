@@ -17,8 +17,50 @@ var (
 )
 
 type tableMeta struct {
-	TableName string
-	Fields    map[string]string
+	TableName             string
+	Fields                []string
+	HasAutoIncrement      bool
+	AutoIncrementColumns  []string
+	HasAutoCreateTime     bool
+	AutoCreateTimeColumns map[string]string
+	HasAutoUpdateTime     bool
+	AutoUpdateTimeColumns map[string]string
+}
+
+func (m tableMeta) IsAutoIncrement(col string) bool {
+	if !m.HasAutoIncrement {
+		return false
+	}
+	for _, key := range m.AutoIncrementColumns {
+		if key == col {
+			return true
+		}
+	}
+	return false
+}
+
+func (m tableMeta) IsAutoCreateTime(col string) bool {
+	if !m.HasAutoCreateTime {
+		return false
+	}
+	for k := range m.AutoCreateTimeColumns {
+		if k == col {
+			return true
+		}
+	}
+	return false
+}
+
+func (m tableMeta) IsAutoUpdateTime(col string) bool {
+	if !m.HasAutoUpdateTime {
+		return false
+	}
+	for k := range m.AutoUpdateTimeColumns {
+		if k == col {
+			return true
+		}
+	}
+	return false
 }
 
 type schema interface {
@@ -29,18 +71,50 @@ func Register(s schema) {
 	rv := reflect.ValueOf(s)
 	rt := rv.Type()
 
-	fs := map[string]string{}
+	fs := []string{}
+	hasAutoIncrement := false
+	autoIncrementColumns := []string{}
+	hasAutoCreateTime := false
+	autoCreateTimeColumns := map[string]string{}
+	hasAutoUpdateTime := false
+	autoUpdateTimeColumns := map[string]string{}
+
 	for i := 0; i < rt.NumField(); i++ {
-		fn := rt.Field(i).Tag.Get("db")
+		field := rt.Field(i)
+
+		col := field.Tag.Get("db")
+		if col == "" {
+			continue
+		}
+		fs = append(fs, col)
+
+		fn := field.Tag.Get("torm")
 		if fn == "" {
 			continue
 		}
-		fs[fn] = fn
+		switch fn {
+		case "autoIncrement":
+			hasAutoIncrement = true
+			autoIncrementColumns = append(autoIncrementColumns, col)
+		case "autoCreateTime":
+			hasAutoCreateTime = true
+			autoCreateTimeColumns[col] = field.Name
+		case "autoUpdateTime":
+			hasAutoUpdateTime = true
+			autoUpdateTimeColumns[col] = field.Name
+		default:
+		}
 	}
 
 	metas[s.TableName()] = &tableMeta{
-		TableName: s.TableName(),
-		Fields:    fs,
+		TableName:             s.TableName(),
+		Fields:                fs,
+		HasAutoIncrement:      hasAutoIncrement,
+		AutoIncrementColumns:  autoIncrementColumns,
+		HasAutoCreateTime:     hasAutoCreateTime,
+		AutoCreateTimeColumns: autoCreateTimeColumns,
+		HasAutoUpdateTime:     hasAutoUpdateTime,
+		AutoUpdateTimeColumns: autoUpdateTimeColumns,
 	}
 }
 

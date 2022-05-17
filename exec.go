@@ -3,7 +3,9 @@ package torm
 import (
 	"database/sql"
 	"fmt"
+	"reflect"
 	"strings"
+	"time"
 
 	"github.com/jmoiron/sqlx"
 	log "github.com/sirupsen/logrus"
@@ -12,31 +14,89 @@ import (
 type insertBuilder struct {
 	h      handler
 	fields []string
+	ts     *time.Time
 }
 
-func newInsert(h handler, f ...string) *insertBuilder {
+func newInsert(h handler, ts *time.Time, f ...string) *insertBuilder {
 	return &insertBuilder{
 		h:      h,
 		fields: f,
+		ts:     ts,
 	}
 }
 
-func (e *insertBuilder) ToSQL(s schema) (*SQL, error) {
+func (b *insertBuilder) ToSQL(s schema) (*SQL, error) {
 	meta := metas[s.TableName()]
 
-	if len(e.fields) <= 0 {
-		fs := make([]string, 0, len(meta.Fields))
+	specifyAutoCreateTimeCol := map[string]bool{}
+	specifyAutoUpdateTimeCol := map[string]bool{}
+	if len(b.fields) <= 0 {
+		fs := []string{}
 		for _, f := range meta.Fields {
+			if meta.IsAutoIncrement(f) {
+				continue
+			}
 			fs = append(fs, f)
 		}
-		e.fields = fs
+		b.fields = fs
+	} else {
+		for _, fn := range b.fields {
+			if meta.IsAutoCreateTime(fn) {
+				specifyAutoCreateTimeCol[fn] = true
+				continue
+			}
+			if meta.IsAutoUpdateTime(fn) {
+				specifyAutoUpdateTimeCol[fn] = true
+				continue
+			}
+		}
+		for k := range meta.AutoCreateTimeColumns {
+			if _, ok := specifyAutoCreateTimeCol[k]; !ok {
+				b.fields = append(b.fields, k)
+			}
+		}
+		for k := range meta.AutoUpdateTimeColumns {
+			if _, ok := specifyAutoUpdateTimeCol[k]; !ok {
+				b.fields = append(b.fields, k)
+			}
+		}
 	}
 
-	names := make([]string, 0, len(e.fields))
-	for _, n := range e.fields {
+	ts := time.Now()
+	if b.ts != nil {
+		ts = *b.ts
+	}
+	elem := reflect.ValueOf(s).Elem()
+	for k, v := range meta.AutoCreateTimeColumns {
+		if _, ok := specifyAutoCreateTimeCol[k]; !ok {
+			f := elem.FieldByName(v)
+			if f.IsValid() {
+				if f.CanSet() {
+					if f.Kind() == reflect.Struct {
+						f.Set(reflect.ValueOf(ts))
+					}
+				}
+			}
+		}
+	}
+	for k, v := range meta.AutoUpdateTimeColumns {
+		if _, ok := specifyAutoUpdateTimeCol[k]; !ok {
+			f := elem.FieldByName(v)
+			if f.IsValid() {
+				if f.CanSet() {
+					if f.Kind() == reflect.Struct {
+						f.Set(reflect.ValueOf(ts))
+					}
+				}
+			}
+		}
+	}
+
+	names := make([]string, 0, len(b.fields))
+	for _, n := range b.fields {
 		names = append(names, ":"+n)
 	}
-	syntax := fmt.Sprintf(`INSERT INTO %s (%s) VALUES (%s)`, meta.TableName, strings.Join(e.fields, ","), strings.Join(names, ","))
+	syntax := fmt.Sprintf(`INSERT INTO %s (%s) VALUES (%s)`, meta.TableName, strings.Join(b.fields, ","), strings.Join(names, ","))
 
 	log.Infof("SQL: %s value: %#v", syntax, s)
 	return &SQL{
@@ -56,12 +116,14 @@ func (e *insertBuilder) Exec(s schema) (sql.Result, error) {
 type updateBuilder struct {
 	h      handler
 	fields []string
+	ts     *time.Time
 }
 
-func newUpdate(h handler, f ...string) *updateBuilder {
+func newUpdate(h handler, ts *time.Time, f ...string) *updateBuilder {
 	return &updateBuilder{
 		h:      h,
 		fields: f,
+		ts:     ts,
 	}
 }
 
@@ -70,6 +132,7 @@ func (u *updateBuilder) Where(clause string) *execUpdateBuilder {
 		h:      u.h,
 		fields: u.fields,
 		clause: clause,
+		ts:     u.ts,
 	}
 }
 
@@ -77,26 +140,63 @@ type execUpdateBuilder struct {
 	h      handler
 	fields []string
 	clause string
+	ts     *time.Time
 }
 
-func (e *execUpdateBuilder) ToSQL(s schema) (*SQL, error) {
+func (b *execUpdateBuilder) ToSQL(s schema) (*SQL, error) {
 	meta := metas[s.TableName()]
 
-	if len(e.fields) <= 0 {
-		fs := make([]string, 0, len(meta.Fields))
+	specifyAutoUpdateTimeCol := map[string]bool{}
+	if len(b.fields) <= 0 {
+		fs := []string{}
 		for _, f := range meta.Fields {
+			if meta.IsAutoIncrement(f) {
+				continue
+			}
+			if meta.IsAutoCreateTime(f) {
+				continue
+			}
 			fs = append(fs, f)
 		}
-		e.fields = fs
+		b.fields = fs
+	} else {
+		for _, fn := range b.fields {
+			if meta.IsAutoUpdateTime(fn) {
+				specifyAutoUpdateTimeCol[fn] = true
+			}
+		}
+		for k := range meta.AutoUpdateTimeColumns {
+			if _, ok := specifyAutoUpdateTimeCol[k]; !ok {
+				b.fields = append(b.fields, k)
+			}
+		}
 	}
 
-	clauses := make([]string, 0, len(e.fields))
-	for _, n := range e.fields {
-		clauses = append(clauses, fmt.Sprintf("%s=:%s", n, n))
+	ts := time.Now()
+	if b.ts != nil {
+		ts = *b.ts
 	}
-	syntax := []string{fmt.Sprintf(`UPDATE %s SET %s`, meta.TableName, strings.Join(clauses, ","))}
-	if e.clause != "" {
-		syntax = append(syntax, fmt.Sprintf("WHERE %s", e.clause))
+	elem := reflect.ValueOf(s).Elem()
+	for k, v := range meta.AutoUpdateTimeColumns {
+		if _, ok := specifyAutoUpdateTimeCol[k]; !ok {
+			f := elem.FieldByName(v)
+			if f.IsValid() {
+				if f.CanSet() {
+					if f.Kind() == reflect.Struct {
+						f.Set(reflect.ValueOf(ts))
+					}
+				}
+			}
+		}
+	}
+
+	fields := make([]string, 0, len(b.fields))
+	for _, n := range b.fields {
+		fields = append(fields, fmt.Sprintf("%s=:%s", n, n))
+	}
+	syntax := []string{fmt.Sprintf(`UPDATE %s SET %s`, meta.TableName, strings.Join(fields, ","))}
+	if b.clause != "" {
+		syntax = append(syntax, fmt.Sprintf("WHERE %s", b.clause))
 	}
 	syntax = []string{strings.Join(syntax, " ")}
 
