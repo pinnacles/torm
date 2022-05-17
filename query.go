@@ -75,11 +75,7 @@ func (q *querySelectBuilder) ToSQL(res interface{}) (*SQL, error) {
 			selectColumns = strings.Join(q.fields, ",")
 		}
 	} else {
-		cols := make([]string, 0, len(meta.Fields))
-		for _, v := range meta.Fields {
-			cols = append(cols, v)
-		}
-		selectColumns = strings.Join(cols, ",")
+		selectColumns = strings.Join(meta.Fields, ",")
 	}
 
 	syntax := []string{fmt.Sprintf("SELECT %s FROM %s", selectColumns, meta.TableName)}

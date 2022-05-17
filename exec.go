@@ -105,12 +105,12 @@ func (b *insertBuilder) ToSQL(s schema) (*SQL, error) {
 	}, nil
 }
 
-func (e *insertBuilder) Exec(s schema) (sql.Result, error) {
-	sql, err := e.ToSQL(s)
+func (b *insertBuilder) Exec(s schema) (sql.Result, error) {
+	sql, err := b.ToSQL(s)
 	if err != nil {
 		return nil, err
 	}
-	return e.h.NamedExec(sql.Query, s)
+	return b.h.NamedExec(sql.Query, s)
 }
 
 type updateBuilder struct {
@@ -127,12 +127,12 @@ func newUpdate(h handler, ts *time.Time, f ...string) *updateBuilder {
 	}
 }
 
-func (u *updateBuilder) Where(clause string) *execUpdateBuilder {
+func (b *updateBuilder) Where(clause string) *execUpdateBuilder {
 	return &execUpdateBuilder{
-		h:      u.h,
-		fields: u.fields,
+		h:      b.h,
+		fields: b.fields,
 		clause: clause,
-		ts:     u.ts,
+		ts:     b.ts,
 	}
 }
 
@@ -207,12 +207,12 @@ func (b *execUpdateBuilder) ToSQL(s schema) (*SQL, error) {
 	}, nil
 }
 
-func (e *execUpdateBuilder) Exec(s schema) (sql.Result, error) {
-	sql, err := e.ToSQL(s)
+func (b *execUpdateBuilder) Exec(s schema) (sql.Result, error) {
+	sql, err := b.ToSQL(s)
 	if err != nil {
 		return nil, err
 	}
-	return e.h.NamedExec(sql.Query, s)
+	return b.h.NamedExec(sql.Query, s)
 }
 
 type deleteBuilder struct {
@@ -225,9 +225,9 @@ func newDelete(h handler) *deleteBuilder {
 	}
 }
 
-func (d *deleteBuilder) Where(clause string) *execDeleteBuilder {
+func (b *deleteBuilder) Where(clause string) *execDeleteBuilder {
 	return &execDeleteBuilder{
-		h:      d.h,
+		h:      b.h,
 		clause: clause,
 	}
 }
@@ -237,9 +237,9 @@ type execDeleteBuilder struct {
 	clause string
 }
 
-func (e *execDeleteBuilder) ToSQL(s schema) (*SQL, error) {
+func (b *execDeleteBuilder) ToSQL(s schema) (*SQL, error) {
 	meta := metas[s.TableName()]
-	query, args, err := sqlx.Named(fmt.Sprintf("DELETE FROM %s WHERE %s", meta.TableName, e.clause), s)
+	query, args, err := sqlx.Named(fmt.Sprintf("DELETE FROM %s WHERE %s", meta.TableName, b.clause), s)
 	if err != nil {
 		return nil, err
 	}
@@ -251,10 +251,10 @@ func (e *execDeleteBuilder) ToSQL(s schema) (*SQL, error) {
 	}, nil
 }
 
-func (e *execDeleteBuilder) Exec(s schema) (sql.Result, error) {
-	sql, err := e.ToSQL(s)
+func (b *execDeleteBuilder) Exec(s schema) (sql.Result, error) {
+	sql, err := b.ToSQL(s)
 	if err != nil {
 		return nil, err
 	}
-	return e.h.Exec(sql.Query, sql.Args...)
+	return b.h.Exec(sql.Query, sql.Args...)
 }
