@@ -119,7 +119,7 @@ func (q *querySelectBuilder) ToSQL(res interface{}) (*SQL, error) {
 	log.Infof("SQL: %s values: %#v", query, params)
 	return &SQL{
 		Query: query,
-		Args : params,
+		Args:  params,
 	}, nil
 }
 

@@ -94,7 +94,8 @@ func insertUser(builder *torm.Builder) error {
 		Email: "foo@example.com",
 		Age:   10,
 	}
-	return builder.Insert("name", "email", "age").Exec(user)
+	_, err := builder.Insert("name", "email", "age").Exec(user)
+	return err
 }
 
 func insertUsers(builder *torm.Builder) error {
@@ -111,7 +112,7 @@ func insertUsers(builder *torm.Builder) error {
 		},
 	}
 	for _, user := range users {
-		if err := builder.Insert("name", "email", "age").Exec(user); err != nil {
+		if _, err := builder.Insert("name", "email", "age").Exec(user); err != nil {
 			return err
 		}
 	}
@@ -124,7 +125,8 @@ func updateUser(builder *torm.Builder) error {
 		return err
 	}
 	user.Email = "fooooooo@example.com"
-	return builder.Update("email").Where("id=:id").Exec(user)
+	_, err := builder.Update("email").Where("id=:id").Exec(user)
+	return err
 }
 
 func updateUsers(builder *torm.Builder) error {
@@ -136,7 +138,7 @@ func updateUsers(builder *torm.Builder) error {
 		users[i].Age = u.Age + 3
 	}
 	for _, u := range users {
-		if err := builder.Update("age", "email").Where("id=:id").Exec(u); err != nil {
+		if _, err := builder.Update("age", "email").Where("id=:id").Exec(u); err != nil {
 			return err
 		}
 	}
@@ -148,7 +150,8 @@ func deleteUser(builder *torm.Builder) error {
 	if err := builder.Select().Where("name=:name", torm.KV{"name": "foo"}).Query(&user); err != nil {
 		return err
 	}
-	return builder.Delete().Where("id=:id").Exec(user)
+	_, err := builder.Delete().Where("id=:id").Exec(user)
+	return err
 }
 
 func deleteUsers(builder *torm.Builder) error {
@@ -157,7 +160,7 @@ func deleteUsers(builder *torm.Builder) error {
 		return err
 	}
 	for _, u := range users {
-		if err := builder.Delete().Where("id=:id").Exec(u); err != nil {
+		if _, err := builder.Delete().Where("id=:id").Exec(u); err != nil {
 			return err
 		}
 	}
