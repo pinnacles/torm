@@ -2,6 +2,8 @@ package torm
 
 import (
 	"database/sql"
+	"time"
+
 	"github.com/jmoiron/sqlx"
 )
 
@@ -25,7 +27,8 @@ type SQL struct {
 }
 
 type Builder struct {
-	h handler
+	h  handler
+	ts *time.Time
 }
 
 func NewBuilder(h handler) *Builder {
@@ -43,13 +46,17 @@ func (t Builder) Select(f ...string) *selectBuilder {
 }
 
 func (t Builder) Insert(f ...string) *insertBuilder {
-	return newInsert(t.h, f...)
+	return newInsert(t.h, t.ts, f...)
 }
 
 func (t Builder) Update(f ...string) *updateBuilder {
-	return newUpdate(t.h, f...)
+	return newUpdate(t.h, t.ts, f...)
 }
 
 func (t Builder) Delete() *deleteBuilder {
 	return newDelete(t.h)
+}
+
+func (t *Builder) SetTime(ts *time.Time) {
+	t.ts = ts
 }

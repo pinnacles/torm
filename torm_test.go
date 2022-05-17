@@ -15,10 +15,22 @@ func TestRegister(t *testing.T) {
 		if m.TableName != "test" {
 			t.Error("m.TableName is not `test`")
 		}
-		if _, ok := m.Fields["foo"]; !ok {
+		ok := false
+		for _, f := range m.Fields {
+			if f == "foo" {
+				ok = true
+			}
+		}
+		if !ok {
 			t.Error("m.Fileds don't have `foo` key")
 		}
-		if _, ok := m.Fields["bar"]; ok {
+		ok = false
+		for _, f := range m.Fields {
+			if f == "bar" {
+				ok = true
+			}
+		}
+		if ok {
 			t.Error("m.Fileds have `bar` key")
 		}
 	}
