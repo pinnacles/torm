@@ -21,7 +21,7 @@ type handler interface {
 
 type SQL struct {
 	Query string
-	Args []interface{}
+	Args  []interface{}
 }
 
 type Builder struct {

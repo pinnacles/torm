@@ -9,7 +9,7 @@ import (
 )
 
 func TestBuilder(t *testing.T) {
-	if err := test.WithSqlxMock(func (db *sqlx.DB, mock sqlmock.Sqlmock) {
+	if err := test.WithSqlxMock(func(db *sqlx.DB, mock sqlmock.Sqlmock) {
 		builder := NewBuilder(db)
 
 		if builder.Insert() == nil {

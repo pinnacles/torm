@@ -1,8 +1,8 @@
 package torm
 
 import (
-	"testing"
 	"regexp"
+	"testing"
 
 	sqlmock "github.com/DATA-DOG/go-sqlmock"
 	"github.com/jmoiron/sqlx"
@@ -14,7 +14,7 @@ func init() {
 }
 
 func TestSelectOne(t *testing.T) {
-	if err := test.WithSqlxMock(func (db *sqlx.DB, mock sqlmock.Sqlmock) {
+	if err := test.WithSqlxMock(func(db *sqlx.DB, mock sqlmock.Sqlmock) {
 		mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM test`)).
 			WillReturnRows(sqlmock.NewRows([]string{"foo"}).AddRow(1))
 
@@ -77,7 +77,7 @@ func TestSelectColumn(t *testing.T) {
 }
 
 func TestSeletWithWhere(t *testing.T) {
-	if err := test.WithSqlxMock(func (db *sqlx.DB, mock sqlmock.Sqlmock) {
+	if err := test.WithSqlxMock(func(db *sqlx.DB, mock sqlmock.Sqlmock) {
 		mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM test WHERE foo = ?`)).
 			WithArgs(1).
 			WillReturnRows(sqlmock.NewRows([]string{"foo"}).AddRow(1).AddRow(1))

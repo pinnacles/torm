@@ -17,7 +17,8 @@ func TestTransactionCommit(t *testing.T) {
 
 		if err := Transaction(db, func(tx *sqlx.Tx) error {
 			builder := NewBuilder(tx)
-			return builder.Insert().Exec(&test.TestSchema{Foo: 1, Bar: 2})
+			_, err := builder.Insert().Exec(&test.TestSchema{Foo: 1, Bar: 2})
+			return err
 		}); err != nil {
 			t.Fatal(err)
 		}
@@ -37,7 +38,8 @@ func TestTransactionRollback(t *testing.T) {
 
 		if err := Transaction(db, func(tx *sqlx.Tx) error {
 			builder := NewBuilder(tx)
-			return builder.Insert().Exec(&test.TestSchema{Foo: 1, Bar: 2})
+			_, err := builder.Insert().Exec(&test.TestSchema{Foo: 1, Bar: 2})
+			return err
 		}); err == nil {
 			t.Fatal(err)
 		}
