@@ -93,10 +93,11 @@ func (b *insertBuilder) ToSQL(s schema) (*SQL, error) {
 	}
 
 	names := make([]string, 0, len(b.fields))
-	for _, n := range b.fields {
+	for i, n := range b.fields {
+		b.fields[i] = fmt.Sprintf("`%s`", n)
 		names = append(names, ":"+n)
 	}
-	syntax := fmt.Sprintf(`INSERT INTO %s (%s) VALUES (%s)`, meta.TableName, strings.Join(b.fields, ","), strings.Join(names, ","))
+	syntax := fmt.Sprintf("INSERT INTO `%s` (%s) VALUES (%s)", meta.TableName, strings.Join(b.fields, ","), strings.Join(names, ","))
 
 	log.Infof("SQL: %s value: %#v", syntax, s)
 	return &SQL{
@@ -192,9 +193,9 @@ func (b *execUpdateBuilder) ToSQL(s schema) (*SQL, error) {
 
 	fields := make([]string, 0, len(b.fields))
 	for _, n := range b.fields {
-		fields = append(fields, fmt.Sprintf("%s=:%s", n, n))
+		fields = append(fields, fmt.Sprintf("`%s`=:%s", n, n))
 	}
-	syntax := []string{fmt.Sprintf(`UPDATE %s SET %s`, meta.TableName, strings.Join(fields, ","))}
+	syntax := []string{fmt.Sprintf("UPDATE `%s` SET %s", meta.TableName, strings.Join(fields, ","))}
 	if b.clause != "" {
 		syntax = append(syntax, fmt.Sprintf("WHERE %s", b.clause))
 	}
@@ -239,7 +240,7 @@ type execDeleteBuilder struct {
 
 func (b *execDeleteBuilder) ToSQL(s schema) (*SQL, error) {
 	meta := metas[s.TableName()]
-	query, args, err := sqlx.Named(fmt.Sprintf("DELETE FROM %s WHERE %s", meta.TableName, b.clause), s)
+	query, args, err := sqlx.Named(fmt.Sprintf("DELETE FROM `%s` WHERE %s", meta.TableName, b.clause), s)
 	if err != nil {
 		return nil, err
 	}

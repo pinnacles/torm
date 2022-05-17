@@ -14,7 +14,7 @@ func TestTransactionCommit(t *testing.T) {
 	if err := test.WithSqlxMock(func(db *sqlx.DB, mock sqlmock.Sqlmock) {
 		tm := time.Now()
 		mock.ExpectBegin()
-		mock.ExpectExec("INSERT INTO test").WithArgs(1, tm, tm).WillReturnResult(sqlmock.NewResult(1, 1))
+		mock.ExpectExec("INSERT INTO `test`").WithArgs(1, tm, tm).WillReturnResult(sqlmock.NewResult(1, 1))
 		mock.ExpectCommit()
 
 		if err := Transaction(db, func(tx *sqlx.Tx) error {
@@ -37,7 +37,7 @@ func TestTransactionRollback(t *testing.T) {
 	if err := test.WithSqlxMock(func(db *sqlx.DB, mock sqlmock.Sqlmock) {
 		tm := time.Now()
 		mock.ExpectBegin()
-		mock.ExpectExec("INSERT INTO test").WithArgs(1, tm, tm).WillReturnError(errors.New("insert error"))
+		mock.ExpectExec("INSERT INTO `test`").WithArgs(1, tm, tm).WillReturnError(errors.New("insert error"))
 		mock.ExpectRollback()
 
 		if err := Transaction(db, func(tx *sqlx.Tx) error {
