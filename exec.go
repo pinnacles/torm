@@ -25,7 +25,7 @@ func newInsert(h handler, ts *time.Time, f ...string) *insertBuilder {
 	}
 }
 
-func (b *insertBuilder) ToSQL(s schema) (*SQL, error) {
+func (b *insertBuilder) ToSQL(s Schema) (*SQL, error) {
 	meta := metas[s.TableName()]
 
 	specifyAutoCreateTimeCol := map[string]bool{}
@@ -106,7 +106,7 @@ func (b *insertBuilder) ToSQL(s schema) (*SQL, error) {
 	}, nil
 }
 
-func (b *insertBuilder) Exec(s schema) (sql.Result, error) {
+func (b *insertBuilder) Exec(s Schema) (sql.Result, error) {
 	sql, err := b.ToSQL(s)
 	if err != nil {
 		return nil, err
@@ -144,7 +144,7 @@ type execUpdateBuilder struct {
 	ts     *time.Time
 }
 
-func (b *execUpdateBuilder) ToSQL(s schema) (*SQL, error) {
+func (b *execUpdateBuilder) ToSQL(s Schema) (*SQL, error) {
 	meta := metas[s.TableName()]
 
 	specifyAutoUpdateTimeCol := map[string]bool{}
@@ -208,7 +208,7 @@ func (b *execUpdateBuilder) ToSQL(s schema) (*SQL, error) {
 	}, nil
 }
 
-func (b *execUpdateBuilder) Exec(s schema) (sql.Result, error) {
+func (b *execUpdateBuilder) Exec(s Schema) (sql.Result, error) {
 	sql, err := b.ToSQL(s)
 	if err != nil {
 		return nil, err
@@ -238,7 +238,7 @@ type execDeleteBuilder struct {
 	clause string
 }
 
-func (b *execDeleteBuilder) ToSQL(s schema) (*SQL, error) {
+func (b *execDeleteBuilder) ToSQL(s Schema) (*SQL, error) {
 	meta := metas[s.TableName()]
 	query, args, err := sqlx.Named(fmt.Sprintf("DELETE FROM `%s` WHERE %s", meta.TableName, b.clause), s)
 	if err != nil {
@@ -252,7 +252,7 @@ func (b *execDeleteBuilder) ToSQL(s schema) (*SQL, error) {
 	}, nil
 }
 
-func (b *execDeleteBuilder) Exec(s schema) (sql.Result, error) {
+func (b *execDeleteBuilder) Exec(s Schema) (sql.Result, error) {
 	sql, err := b.ToSQL(s)
 	if err != nil {
 		return nil, err
