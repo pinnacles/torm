@@ -63,11 +63,11 @@ func (m tableMeta) IsAutoUpdateTime(col string) bool {
 	return false
 }
 
-type schema interface {
+type Schema interface {
 	TableName() string
 }
 
-func Register(s schema) {
+func Register(s Schema) {
 	rv := reflect.ValueOf(s)
 	rt := rv.Type()
 

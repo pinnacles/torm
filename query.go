@@ -56,13 +56,13 @@ func (q *querySelectBuilder) ToSQL(res interface{}) (*SQL, error) {
 	var meta *tableMeta
 	switch reflect.TypeOf(res).Elem().Kind() {
 	case reflect.Slice:
-		s, ok := interface{}(reflect.New(reflect.TypeOf(res).Elem().Elem()).Interface()).(schema)
+		s, ok := interface{}(reflect.New(reflect.TypeOf(res).Elem().Elem()).Interface()).(Schema)
 		if !ok {
 			return nil, fmt.Errorf("res is expected to pass schema type or slice of schema")
 		}
 		meta = metas[s.TableName()]
 	default:
-		s, ok := res.(schema)
+		s, ok := res.(Schema)
 		if !ok {
 			return nil, fmt.Errorf("res is expected to pass schema type or slice of schema")
 		}
