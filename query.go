@@ -1,6 +1,7 @@
 package torm
 
 import (
+	"context"
 	"fmt"
 	"reflect"
 	"strings"
@@ -32,12 +33,12 @@ func (s *selectBuilder) Where(clause string, kv KV) *querySelectBuilder {
 	}
 }
 
-func (s *selectBuilder) Query(res interface{}) error {
+func (s *selectBuilder) Query(ctx context.Context, res interface{}) error {
 	q := &querySelectBuilder{
 		h:      s.h,
 		fields: s.fields,
 	}
-	return q.Query(res)
+	return q.Query(ctx, res)
 }
 
 type querySelectBuilder struct {
@@ -123,7 +124,7 @@ func (q *querySelectBuilder) ToSQL(res interface{}) (*SQL, error) {
 	}, nil
 }
 
-func (q *querySelectBuilder) Query(res interface{}) error {
+func (q *querySelectBuilder) Query(ctx context.Context, res interface{}) error {
 	sql, err := q.ToSQL(res)
 	if err != nil {
 		return err
@@ -138,8 +139,8 @@ func (q *querySelectBuilder) Query(res interface{}) error {
 	}
 
 	if resIsSlice {
-		return q.h.Select(res, sql.Query, sql.Args...)
+		return q.h.SelectContext(ctx, res, sql.Query, sql.Args...)
 	} else {
-		return q.h.Get(res, sql.Query, sql.Args...)
+		return q.h.GetContext(ctx, res, sql.Query, sql.Args...)
 	}
 }

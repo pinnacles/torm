@@ -8,5 +8,5 @@ jobs:
     uses: pinnacles/common-cicd-actions/.github/workflows/ci.yml@v0.2.1
     with:
       use_go: true
-      go_version: 1.18
+      go_version: 1.20.1
       use_mysql: false

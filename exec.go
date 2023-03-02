@@ -1,6 +1,7 @@
 package torm
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"reflect"
@@ -106,12 +107,12 @@ func (b *insertBuilder) ToSQL(s Schema) (*SQL, error) {
 	}, nil
 }
 
-func (b *insertBuilder) Exec(s Schema) (sql.Result, error) {
+func (b *insertBuilder) Exec(ctx context.Context, s Schema) (sql.Result, error) {
 	sql, err := b.ToSQL(s)
 	if err != nil {
 		return nil, err
 	}
-	return b.h.NamedExec(sql.Query, s)
+	return b.h.NamedExecContext(ctx, sql.Query, s)
 }
 
 type updateBuilder struct {
@@ -208,12 +209,12 @@ func (b *execUpdateBuilder) ToSQL(s Schema) (*SQL, error) {
 	}, nil
 }
 
-func (b *execUpdateBuilder) Exec(s Schema) (sql.Result, error) {
+func (b *execUpdateBuilder) Exec(ctx context.Context, s Schema) (sql.Result, error) {
 	sql, err := b.ToSQL(s)
 	if err != nil {
 		return nil, err
 	}
-	return b.h.NamedExec(sql.Query, s)
+	return b.h.NamedExecContext(ctx, sql.Query, s)
 }
 
 type deleteBuilder struct {
@@ -252,10 +253,10 @@ func (b *execDeleteBuilder) ToSQL(s Schema) (*SQL, error) {
 	}, nil
 }
 
-func (b *execDeleteBuilder) Exec(s Schema) (sql.Result, error) {
+func (b *execDeleteBuilder) Exec(ctx context.Context, s Schema) (sql.Result, error) {
 	sql, err := b.ToSQL(s)
 	if err != nil {
 		return nil, err
 	}
-	return b.h.Exec(sql.Query, sql.Args...)
+	return b.h.ExecContext(ctx, sql.Query, sql.Args...)
 }

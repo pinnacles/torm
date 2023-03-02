@@ -1,6 +1,7 @@
 package torm
 
 import (
+	"context"
 	"testing"
 
 	sqlmock "github.com/DATA-DOG/go-sqlmock"
@@ -9,7 +10,7 @@ import (
 )
 
 func TestBuilder(t *testing.T) {
-	if err := test.WithSqlxMock(func(db *sqlx.DB, mock sqlmock.Sqlmock) {
+	if err := test.WithSqlxMock(func(ctx context.Context, db *sqlx.DB, mock sqlmock.Sqlmock) {
 		builder := NewBuilder(db)
 
 		if builder.Insert() == nil {

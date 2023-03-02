@@ -1,6 +1,7 @@
 package torm
 
 import (
+	"context"
 	"errors"
 	"testing"
 	"time"
@@ -11,7 +12,7 @@ import (
 )
 
 func TestTransactionCommit(t *testing.T) {
-	if err := test.WithSqlxMock(func(db *sqlx.DB, mock sqlmock.Sqlmock) {
+	if err := test.WithSqlxMock(func(ctx context.Context, db *sqlx.DB, mock sqlmock.Sqlmock) {
 		tm := time.Now()
 		mock.ExpectBegin()
 		mock.ExpectExec("INSERT INTO `test`").WithArgs(1, tm, tm).WillReturnResult(sqlmock.NewResult(1, 1))
@@ -20,7 +21,7 @@ func TestTransactionCommit(t *testing.T) {
 		if err := Transaction(db, func(tx *sqlx.Tx) error {
 			builder := NewBuilder(tx)
 			builder.SetTime(&tm)
-			_, err := builder.Insert().Exec(&test.TestSchema{Foo: 1, Bar: 2})
+			_, err := builder.Insert().Exec(ctx, &test.TestSchema{Foo: 1, Bar: 2})
 			return err
 		}); err != nil {
 			t.Fatal(err)
@@ -34,7 +35,7 @@ func TestTransactionCommit(t *testing.T) {
 }
 
 func TestTransactionRollback(t *testing.T) {
-	if err := test.WithSqlxMock(func(db *sqlx.DB, mock sqlmock.Sqlmock) {
+	if err := test.WithSqlxMock(func(ctx context.Context, db *sqlx.DB, mock sqlmock.Sqlmock) {
 		tm := time.Now()
 		mock.ExpectBegin()
 		mock.ExpectExec("INSERT INTO `test`").WithArgs(1, tm, tm).WillReturnError(errors.New("insert error"))
@@ -43,7 +44,7 @@ func TestTransactionRollback(t *testing.T) {
 		if err := Transaction(db, func(tx *sqlx.Tx) error {
 			builder := NewBuilder(tx)
 			builder.SetTime(&tm)
-			_, err := builder.Insert().Exec(&test.TestSchema{Foo: 1, Bar: 2})
+			_, err := builder.Insert().Exec(ctx, &test.TestSchema{Foo: 1, Bar: 2})
 			return err
 		}); err == nil {
 			t.Fatal(err)
