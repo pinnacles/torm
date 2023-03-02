@@ -1,6 +1,7 @@
 package torm
 
 import (
+	"context"
 	"regexp"
 	"testing"
 	"time"
@@ -15,7 +16,7 @@ func init() {
 }
 
 func TestInsert(t *testing.T) {
-	if err := test.WithSqlxMock(func(db *sqlx.DB, mock sqlmock.Sqlmock) {
+	if err := test.WithSqlxMock(func(ctx context.Context, db *sqlx.DB, mock sqlmock.Sqlmock) {
 		tm := time.Now()
 		mock.ExpectExec(regexp.QuoteMeta("INSERT INTO `test` (`foo`,`created_at`,`updated_at`) VALUES")).
 			WithArgs(1, tm, tm).
@@ -27,7 +28,7 @@ func TestInsert(t *testing.T) {
 			Foo: 1,
 			Bar: 2,
 		}
-		if _, err := builder.Insert().Exec(&ts); err != nil {
+		if _, err := builder.Insert().Exec(ctx, &ts); err != nil {
 			t.Fatal(err)
 		}
 		if err := mock.ExpectationsWereMet(); err != nil {
@@ -39,7 +40,7 @@ func TestInsert(t *testing.T) {
 }
 
 func TestInsertColumn(t *testing.T) {
-	if err := test.WithSqlxMock(func(db *sqlx.DB, mock sqlmock.Sqlmock) {
+	if err := test.WithSqlxMock(func(ctx context.Context, db *sqlx.DB, mock sqlmock.Sqlmock) {
 		tm := time.Now()
 		mock.ExpectExec(regexp.QuoteMeta("INSERT INTO `test` (`bar`,`created_at`,`updated_at`) VALUES")).
 			WithArgs(2, tm, tm).
@@ -51,7 +52,7 @@ func TestInsertColumn(t *testing.T) {
 			Foo: 1,
 			Bar: 2,
 		}
-		if _, err := builder.Insert("bar").Exec(&ts); err != nil {
+		if _, err := builder.Insert("bar").Exec(ctx, &ts); err != nil {
 			t.Fatal(err)
 		}
 		if err := mock.ExpectationsWereMet(); err != nil {
@@ -63,7 +64,7 @@ func TestInsertColumn(t *testing.T) {
 }
 
 func TestUpdate(t *testing.T) {
-	if err := test.WithSqlxMock(func(db *sqlx.DB, mock sqlmock.Sqlmock) {
+	if err := test.WithSqlxMock(func(ctx context.Context, db *sqlx.DB, mock sqlmock.Sqlmock) {
 		tm := time.Now()
 		mock.ExpectExec(regexp.QuoteMeta("UPDATE `test` SET `foo`=?,`updated_at`=? WHERE `foo` = ?")).
 			WithArgs(1, tm, 1).
@@ -75,7 +76,7 @@ func TestUpdate(t *testing.T) {
 			Foo: 1,
 			Bar: 2,
 		}
-		if _, err := builder.Update().Where("`foo` = :foo").Exec(&ts); err != nil {
+		if _, err := builder.Update().Where("`foo` = :foo").Exec(ctx, &ts); err != nil {
 			t.Fatal(err)
 		}
 		if err := mock.ExpectationsWereMet(); err != nil {
@@ -87,7 +88,7 @@ func TestUpdate(t *testing.T) {
 }
 
 func TestUpdateColumn(t *testing.T) {
-	if err := test.WithSqlxMock(func(db *sqlx.DB, mock sqlmock.Sqlmock) {
+	if err := test.WithSqlxMock(func(ctx context.Context, db *sqlx.DB, mock sqlmock.Sqlmock) {
 		tm := time.Now()
 		mock.ExpectExec(regexp.QuoteMeta("UPDATE `test` SET `bar`=?,`updated_at`=? WHERE foo = ?")).
 			WithArgs(2, tm, 1).
@@ -99,7 +100,7 @@ func TestUpdateColumn(t *testing.T) {
 			Foo: 1,
 			Bar: 2,
 		}
-		if _, err := builder.Update("bar").Where("foo = :foo").Exec(&ts); err != nil {
+		if _, err := builder.Update("bar").Where("foo = :foo").Exec(ctx, &ts); err != nil {
 			t.Fatal(err)
 		}
 		if err := mock.ExpectationsWereMet(); err != nil {
@@ -111,7 +112,7 @@ func TestUpdateColumn(t *testing.T) {
 }
 
 func TestDelete(t *testing.T) {
-	if err := test.WithSqlxMock(func(db *sqlx.DB, mock sqlmock.Sqlmock) {
+	if err := test.WithSqlxMock(func(ctx context.Context, db *sqlx.DB, mock sqlmock.Sqlmock) {
 		mock.ExpectExec(regexp.QuoteMeta("DELETE FROM `test` WHERE foo = ?")).
 			WithArgs(1).
 			WillReturnResult(sqlmock.NewResult(1, 1))
@@ -121,7 +122,7 @@ func TestDelete(t *testing.T) {
 			Foo: 1,
 			Bar: 2,
 		}
-		if _, err := builder.Delete().Where("foo = :foo").Exec(&ts); err != nil {
+		if _, err := builder.Delete().Where("foo = :foo").Exec(ctx, &ts); err != nil {
 			t.Fatal(err)
 		}
 		if err := mock.ExpectationsWereMet(); err != nil {

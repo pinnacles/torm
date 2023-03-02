@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"database/sql"
 	"log"
 
@@ -63,8 +64,9 @@ func must(err error) {
 }
 
 func printUsers(builder *torm.Builder) error {
+	ctx := context.Background()
 	users := []User{}
-	if err := builder.Select().Query(&users); err != nil {
+	if err := builder.Select().Query(ctx, &users); err != nil {
 		return err
 	}
 	log.Println("####################")
@@ -77,8 +79,9 @@ func printUsers(builder *torm.Builder) error {
 }
 
 func printUsersWhereByAge(builder *torm.Builder) error {
+	ctx := context.Background()
 	users := []User{}
-	if err := builder.Select().Where("age IN (:age)", torm.KV{"age": []int{20, 30}}).Query(&users); err != nil {
+	if err := builder.Select().Where("age IN (:age)", torm.KV{"age": []int{20, 30}}).Query(ctx, &users); err != nil {
 		return err
 	}
 	log.Println("####################")
@@ -91,16 +94,18 @@ func printUsersWhereByAge(builder *torm.Builder) error {
 }
 
 func insertUser(builder *torm.Builder) error {
+	ctx := context.Background()
 	user := User{
 		Name:  "foo",
 		Email: "foo@example.com",
 		Age:   10,
 	}
-	_, err := builder.Insert("name", "email", "age").Exec(user)
+	_, err := builder.Insert("name", "email", "age").Exec(ctx, user)
 	return err
 }
 
 func insertUsers(builder *torm.Builder) error {
+	ctx := context.Background()
 	users := []User{
 		{
 			Name:  "bar",
@@ -114,7 +119,7 @@ func insertUsers(builder *torm.Builder) error {
 		},
 	}
 	for _, user := range users {
-		if _, err := builder.Insert("name", "email", "age").Exec(user); err != nil {
+		if _, err := builder.Insert("name", "email", "age").Exec(ctx, user); err != nil {
 			return err
 		}
 	}
@@ -122,25 +127,27 @@ func insertUsers(builder *torm.Builder) error {
 }
 
 func updateUser(builder *torm.Builder) error {
+	ctx := context.Background()
 	user := User{}
-	if err := builder.Select().Where("name=:name", torm.KV{"name": "foo"}).Query(&user); err != nil {
+	if err := builder.Select().Where("name=:name", torm.KV{"name": "foo"}).Query(ctx, &user); err != nil {
 		return err
 	}
 	user.Email = "fooooooo@example.com"
-	_, err := builder.Update("email").Where("id=:id").Exec(user)
+	_, err := builder.Update("email").Where("id=:id").Exec(ctx, user)
 	return err
 }
 
 func updateUsers(builder *torm.Builder) error {
+	ctx := context.Background()
 	users := []User{}
-	if err := builder.Select().Where("name LIKE 'b%' AND age<=:age", torm.KV{"age": 20}).Query(&users); err != nil {
+	if err := builder.Select().Where("name LIKE 'b%' AND age<=:age", torm.KV{"age": 20}).Query(ctx, &users); err != nil {
 		return err
 	}
 	for i, u := range users {
 		users[i].Age = u.Age + 3
 	}
 	for _, u := range users {
-		if _, err := builder.Update("age", "email").Where("id=:id").Exec(u); err != nil {
+		if _, err := builder.Update("age", "email").Where("id=:id").Exec(ctx, u); err != nil {
 			return err
 		}
 	}
@@ -148,21 +155,23 @@ func updateUsers(builder *torm.Builder) error {
 }
 
 func deleteUser(builder *torm.Builder) error {
+	ctx := context.Background()
 	user := User{}
-	if err := builder.Select().Where("name=:name", torm.KV{"name": "foo"}).Query(&user); err != nil {
+	if err := builder.Select().Where("name=:name", torm.KV{"name": "foo"}).Query(ctx, &user); err != nil {
 		return err
 	}
-	_, err := builder.Delete().Where("id=:id").Exec(user)
+	_, err := builder.Delete().Where("id=:id").Exec(ctx, user)
 	return err
 }
 
 func deleteUsers(builder *torm.Builder) error {
+	ctx := context.Background()
 	users := []User{}
-	if err := builder.Select().Query(&users); err != nil {
+	if err := builder.Select().Query(ctx, &users); err != nil {
 		return err
 	}
 	for _, u := range users {
-		if _, err := builder.Delete().Where("id=:id").Exec(u); err != nil {
+		if _, err := builder.Delete().Where("id=:id").Exec(ctx, u); err != nil {
 			return err
 		}
 	}

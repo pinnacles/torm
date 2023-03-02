@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"database/sql"
 	"log"
 	"time"
@@ -78,6 +79,7 @@ func must(err error) {
 }
 
 func printOrgUsers(builder *torm.Builder) error {
+	ctx := context.Background()
 	q := `
 		SELECT
 			orgs.id AS org_id,
@@ -90,7 +92,7 @@ func printOrgUsers(builder *torm.Builder) error {
 		WHERE
 			users.age < :age
 	`
-	stmt, err := builder.Querier().PrepareNamed(q)
+	stmt, err := builder.Querier().PrepareNamedContext(ctx, q)
 	if err != nil {
 		return err
 	}
@@ -110,6 +112,7 @@ func printOrgUsers(builder *torm.Builder) error {
 }
 
 func insertOrgsWithPreparedStatement(builder *torm.Builder) error {
+	ctx := context.Background()
 	established, err := time.Parse("_2 Jan 2006", "1 Jul 2019")
 	if err != nil {
 		return err
@@ -131,7 +134,7 @@ func insertOrgsWithPreparedStatement(builder *torm.Builder) error {
 			EstablishedAt: established,
 		},
 	}
-	stmt, err := builder.Querier().PrepareNamed(`INSERT INTO orgs(name, address, established_at) VALUES(:name, :address, :established_at)`)
+	stmt, err := builder.Querier().PrepareNamedContext(ctx, `INSERT INTO orgs(name, address, established_at) VALUES(:name, :address, :established_at)`)
 	if err != nil {
 		return err
 	}
@@ -147,8 +150,9 @@ func insertOrgsWithPreparedStatement(builder *torm.Builder) error {
 }
 
 func bulkInsertUsers(builder *torm.Builder) error {
+	ctx := context.Background()
 	orgs := []Org{}
-	if err := builder.Select().Query(&orgs); err != nil {
+	if err := builder.Select().Query(ctx, &orgs); err != nil {
 		return err
 	}
 	users := []User{
@@ -171,7 +175,7 @@ func bulkInsertUsers(builder *torm.Builder) error {
 			Age:   30,
 		},
 	}
-	_, err := builder.Querier().NamedExec(`INSERT INTO users(name, org_id, email, age) VALUES(:name, :org_id, :email, :age)`, users)
+	_, err := builder.Querier().NamedExecContext(ctx, `INSERT INTO users(name, org_id, email, age) VALUES(:name, :org_id, :email, :age)`, users)
 	if err != nil {
 		return err
 	}
@@ -180,7 +184,8 @@ func bulkInsertUsers(builder *torm.Builder) error {
 }
 
 func deleteUsers(builder *torm.Builder) error {
-	stmt, err := builder.Querier().PrepareNamed(`DELETE FROM users WHERE age < :age`)
+	ctx := context.Background()
+	stmt, err := builder.Querier().PrepareNamedContext(ctx, `DELETE FROM users WHERE age < :age`)
 	if err != nil {
 		return err
 	}
@@ -195,7 +200,8 @@ func deleteUsers(builder *torm.Builder) error {
 }
 
 func deleteOrgs(builder *torm.Builder) error {
-	stmt, err := builder.Querier().PrepareNamed(`DELETE FROM orgs WHERE id < :id`)
+	ctx := context.Background()
+	stmt, err := builder.Querier().PrepareNamedContext(ctx, `DELETE FROM orgs WHERE id < :id`)
 	if err != nil {
 		return err
 	}

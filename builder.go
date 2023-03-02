@@ -1,6 +1,7 @@
 package torm
 
 import (
+	"context"
 	"database/sql"
 	"time"
 
@@ -8,17 +9,17 @@ import (
 )
 
 type querier interface {
-	PrepareNamed(query string) (*sqlx.NamedStmt, error)
-	NamedExec(query string, arg interface{}) (sql.Result, error)
+	PrepareNamedContext(ctx context.Context, query string) (*sqlx.NamedStmt, error)
+	NamedExecContext(ctx context.Context, query string, arg interface{}) (sql.Result, error)
 }
 
 type handler interface {
-	Get(dest interface{}, query string, args ...interface{}) error
-	Select(dest interface{}, query string, args ...interface{}) error
-	NamedExec(query string, arg interface{}) (sql.Result, error)
-	Exec(query string, args ...interface{}) (sql.Result, error)
+	GetContext(ctx context.Context, dest interface{}, query string, args ...interface{}) error
+	SelectContext(ctx context.Context, dest interface{}, query string, args ...interface{}) error
+	NamedExecContext(ctx context.Context, query string, arg interface{}) (sql.Result, error)
+	ExecContext(ctx context.Context, query string, args ...interface{}) (sql.Result, error)
 	Rebind(query string) string
-	PrepareNamed(query string) (*sqlx.NamedStmt, error)
+	PrepareNamedContext(ctx context.Context, query string) (*sqlx.NamedStmt, error)
 }
 
 type SQL struct {

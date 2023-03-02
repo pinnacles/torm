@@ -2,6 +2,7 @@ package test
 
 import (
 	"time"
+	"context"
 
 	sqlmock "github.com/DATA-DOG/go-sqlmock"
 	"github.com/jmoiron/sqlx"
@@ -19,7 +20,7 @@ func (s TestSchema) TableName() string {
 	return "test"
 }
 
-func WithSqlxMock(proc func(db *sqlx.DB, mock sqlmock.Sqlmock)) error {
+func WithSqlxMock(proc func(ctx context.Context, db *sqlx.DB, mock sqlmock.Sqlmock)) error {
 	mdb, mock, err := sqlmock.New()
 	if err != nil {
 		return err
@@ -28,6 +29,7 @@ func WithSqlxMock(proc func(db *sqlx.DB, mock sqlmock.Sqlmock)) error {
 	db := sqlx.NewDb(mdb, "mysql")
 	defer db.Close()
 
-	proc(db, mock)
+	ctx := context.Background()
+	proc(ctx, db, mock)
 	return nil
 }

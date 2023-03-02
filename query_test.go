@@ -1,6 +1,7 @@
 package torm
 
 import (
+	"context"
 	"regexp"
 	"testing"
 
@@ -14,13 +15,13 @@ func init() {
 }
 
 func TestSelectOne(t *testing.T) {
-	if err := test.WithSqlxMock(func(db *sqlx.DB, mock sqlmock.Sqlmock) {
+	if err := test.WithSqlxMock(func(ctx context.Context, db *sqlx.DB, mock sqlmock.Sqlmock) {
 		mock.ExpectQuery(regexp.QuoteMeta("SELECT `*` FROM `test`")).
 			WillReturnRows(sqlmock.NewRows([]string{"foo"}).AddRow(1))
 
 		builder := NewBuilder(db)
 		ts := test.TestSchema{}
-		if err := builder.Select("*").Query(&ts); err != nil {
+		if err := builder.Select("*").Query(ctx, &ts); err != nil {
 			t.Fatal(err)
 		}
 		if err := mock.ExpectationsWereMet(); err != nil {
@@ -35,13 +36,13 @@ func TestSelectOne(t *testing.T) {
 }
 
 func TestSelectMulti(t *testing.T) {
-	if err := test.WithSqlxMock(func(db *sqlx.DB, mock sqlmock.Sqlmock) {
+	if err := test.WithSqlxMock(func(ctx context.Context, db *sqlx.DB, mock sqlmock.Sqlmock) {
 		mock.ExpectQuery(regexp.QuoteMeta("SELECT `id`,`foo`,`created_at`,`updated_at` FROM `test`")).
 			WillReturnRows(sqlmock.NewRows([]string{"foo"}).AddRow(1).AddRow(2))
 
 		builder := NewBuilder(db)
 		ts := []test.TestSchema{}
-		if err := builder.Select().Query(&ts); err != nil {
+		if err := builder.Select().Query(ctx, &ts); err != nil {
 			t.Fatal(err)
 		}
 		if err := mock.ExpectationsWereMet(); err != nil {
@@ -56,13 +57,13 @@ func TestSelectMulti(t *testing.T) {
 }
 
 func TestSelectColumn(t *testing.T) {
-	if err := test.WithSqlxMock(func(db *sqlx.DB, mock sqlmock.Sqlmock) {
+	if err := test.WithSqlxMock(func(ctx context.Context, db *sqlx.DB, mock sqlmock.Sqlmock) {
 		mock.ExpectQuery(regexp.QuoteMeta("SELECT `foo`,`bar` FROM `test`")).
 			WillReturnRows(sqlmock.NewRows([]string{"foo"}).AddRow(1).AddRow(2))
 
 		builder := NewBuilder(db)
 		ts := []test.TestSchema{}
-		if err := builder.Select("foo", "bar").Query(&ts); err != nil {
+		if err := builder.Select("foo", "bar").Query(ctx, &ts); err != nil {
 			t.Fatal(err)
 		}
 		if err := mock.ExpectationsWereMet(); err != nil {
@@ -77,14 +78,14 @@ func TestSelectColumn(t *testing.T) {
 }
 
 func TestSeletWithWhere(t *testing.T) {
-	if err := test.WithSqlxMock(func(db *sqlx.DB, mock sqlmock.Sqlmock) {
+	if err := test.WithSqlxMock(func(ctx context.Context, db *sqlx.DB, mock sqlmock.Sqlmock) {
 		mock.ExpectQuery(regexp.QuoteMeta("SELECT `*` FROM `test` WHERE foo = ?")).
 			WithArgs(1).
 			WillReturnRows(sqlmock.NewRows([]string{"foo"}).AddRow(1).AddRow(1))
 
 		builder := NewBuilder(db)
 		ts := []test.TestSchema{}
-		if err := builder.Select("*").Where("foo = :foo", KV{"foo": 1}).Query(&ts); err != nil {
+		if err := builder.Select("*").Where("foo = :foo", KV{"foo": 1}).Query(ctx, &ts); err != nil {
 			t.Fatal(err)
 		}
 		if err := mock.ExpectationsWereMet(); err != nil {
