@@ -80,7 +80,13 @@ func (q *querySelectBuilder) ToSQL(res interface{}) (*SQL, error) {
 	}
 	quoted := make([]string, 0, len(selectColumns))
 	for _, col := range selectColumns {
-		quoted = append(quoted, fmt.Sprintf("`%s`", col))
+		qcol := ""
+		if col == "*" {
+			qcol = col
+		} else {
+			qcol = fmt.Sprintf("`%s`", col)
+		}
+		quoted = append(quoted, qcol)
 	}
 
 	syntax := []string{fmt.Sprintf("SELECT %s FROM `%s`", strings.Join(quoted, ","), meta.TableName)}
