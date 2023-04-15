@@ -16,7 +16,7 @@ func init() {
 
 func TestSelectOne(t *testing.T) {
 	if err := test.WithSqlxMock(func(ctx context.Context, db *sqlx.DB, mock sqlmock.Sqlmock) {
-		mock.ExpectQuery(regexp.QuoteMeta("SELECT `*` FROM `test`")).
+		mock.ExpectQuery(regexp.QuoteMeta("SELECT * FROM `test`")).
 			WillReturnRows(sqlmock.NewRows([]string{"foo"}).AddRow(1))
 
 		builder := NewBuilder(db)
@@ -79,7 +79,7 @@ func TestSelectColumn(t *testing.T) {
 
 func TestSeletWithWhere(t *testing.T) {
 	if err := test.WithSqlxMock(func(ctx context.Context, db *sqlx.DB, mock sqlmock.Sqlmock) {
-		mock.ExpectQuery(regexp.QuoteMeta("SELECT `*` FROM `test` WHERE foo = ?")).
+		mock.ExpectQuery(regexp.QuoteMeta("SELECT * FROM `test` WHERE foo = ?")).
 			WithArgs(1).
 			WillReturnRows(sqlmock.NewRows([]string{"foo"}).AddRow(1).AddRow(1))
 
