@@ -29,36 +29,36 @@ func newInsert(h handler, ts *time.Time, f ...string) *insertBuilder {
 func (b *insertBuilder) ToSQL(s Schema) (*SQL, error) {
 	meta := metas[s.TableName()]
 
-	specifyAutoCreateTimeCol := map[string]bool{}
-	specifyAutoUpdateTimeCol := map[string]bool{}
+	autoCreateTimeCol := map[string]bool{}
+	autoUpdateTimeCol := map[string]bool{}
 	if len(b.fields) <= 0 {
 		fs := []string{}
-		for _, f := range meta.Fields {
-			if meta.IsAutoIncrement(f) {
+		for _, field := range meta.Fields {
+			if meta.IsAutoIncrement(field) {
 				continue
 			}
-			fs = append(fs, f)
+			fs = append(fs, field)
 		}
 		b.fields = fs
 	} else {
-		for _, fn := range b.fields {
-			if meta.IsAutoCreateTime(fn) {
-				specifyAutoCreateTimeCol[fn] = true
+		for _, field := range b.fields {
+			if meta.IsAutoCreateTime(field) {
+				autoCreateTimeCol[field] = true
 				continue
 			}
-			if meta.IsAutoUpdateTime(fn) {
-				specifyAutoUpdateTimeCol[fn] = true
+			if meta.IsAutoUpdateTime(field) {
+				autoUpdateTimeCol[field] = true
 				continue
 			}
 		}
-		for k := range meta.AutoCreateTimeColumns {
-			if _, ok := specifyAutoCreateTimeCol[k]; !ok {
-				b.fields = append(b.fields, k)
+		for field := range meta.AutoCreateTimeColumns {
+			if _, ok := autoCreateTimeCol[field]; !ok {
+				b.fields = append(b.fields, field)
 			}
 		}
-		for k := range meta.AutoUpdateTimeColumns {
-			if _, ok := specifyAutoUpdateTimeCol[k]; !ok {
-				b.fields = append(b.fields, k)
+		for field := range meta.AutoUpdateTimeColumns {
+			if _, ok := autoUpdateTimeCol[field]; !ok {
+				b.fields = append(b.fields, field)
 			}
 		}
 	}
@@ -69,26 +69,18 @@ func (b *insertBuilder) ToSQL(s Schema) (*SQL, error) {
 	}
 	elem := dereference(reflect.ValueOf(s))
 	for k, v := range meta.AutoCreateTimeColumns {
-		if _, ok := specifyAutoCreateTimeCol[k]; !ok {
+		if _, ok := autoCreateTimeCol[k]; !ok {
 			f := elem.FieldByName(v)
-			if f.IsValid() {
-				if f.CanSet() {
-					if f.Kind() == reflect.Struct {
-						f.Set(reflect.ValueOf(ts))
-					}
-				}
+			if f.IsValid() && f.CanSet() && f.Kind() == reflect.Struct {
+				f.Set(reflect.ValueOf(ts))
 			}
 		}
 	}
 	for k, v := range meta.AutoUpdateTimeColumns {
-		if _, ok := specifyAutoUpdateTimeCol[k]; !ok {
+		if _, ok := autoUpdateTimeCol[k]; !ok {
 			f := elem.FieldByName(v)
-			if f.IsValid() {
-				if f.CanSet() {
-					if f.Kind() == reflect.Struct {
-						f.Set(reflect.ValueOf(ts))
-					}
-				}
+			if f.IsValid() && f.CanSet() && f.Kind() == reflect.Struct {
+				f.Set(reflect.ValueOf(ts))
 			}
 		}
 	}
@@ -148,7 +140,7 @@ type execUpdateBuilder struct {
 func (b *execUpdateBuilder) ToSQL(s Schema) (*SQL, error) {
 	meta := metas[s.TableName()]
 
-	specifyAutoUpdateTimeCol := map[string]bool{}
+	autoUpdateTimeCol := map[string]bool{}
 	if len(b.fields) <= 0 {
 		fs := []string{}
 		for _, f := range meta.Fields {
@@ -162,14 +154,14 @@ func (b *execUpdateBuilder) ToSQL(s Schema) (*SQL, error) {
 		}
 		b.fields = fs
 	} else {
-		for _, fn := range b.fields {
-			if meta.IsAutoUpdateTime(fn) {
-				specifyAutoUpdateTimeCol[fn] = true
+		for _, field := range b.fields {
+			if meta.IsAutoUpdateTime(field) {
+				autoUpdateTimeCol[field] = true
 			}
 		}
-		for k := range meta.AutoUpdateTimeColumns {
-			if _, ok := specifyAutoUpdateTimeCol[k]; !ok {
-				b.fields = append(b.fields, k)
+		for filed := range meta.AutoUpdateTimeColumns {
+			if _, ok := autoUpdateTimeCol[filed]; !ok {
+				b.fields = append(b.fields, filed)
 			}
 		}
 	}
@@ -180,14 +172,10 @@ func (b *execUpdateBuilder) ToSQL(s Schema) (*SQL, error) {
 	}
 	elem := dereference(reflect.ValueOf(s))
 	for k, v := range meta.AutoUpdateTimeColumns {
-		if _, ok := specifyAutoUpdateTimeCol[k]; !ok {
+		if _, ok := autoUpdateTimeCol[k]; !ok {
 			f := elem.FieldByName(v)
-			if f.IsValid() {
-				if f.CanSet() {
-					if f.Kind() == reflect.Struct {
-						f.Set(reflect.ValueOf(ts))
-					}
-				}
+			if f.IsValid() && f.CanSet() && f.Kind() == reflect.Struct {
+				f.Set(reflect.ValueOf(ts))
 			}
 		}
 	}
