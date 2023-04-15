@@ -67,7 +67,7 @@ func (b *insertBuilder) ToSQL(s Schema) (*SQL, error) {
 	if b.ts != nil {
 		ts = *b.ts
 	}
-	elem := reflect.ValueOf(s).Elem()
+	elem := dereference(reflect.ValueOf(s))
 	for k, v := range meta.AutoCreateTimeColumns {
 		if _, ok := specifyAutoCreateTimeCol[k]; !ok {
 			f := elem.FieldByName(v)
@@ -178,7 +178,7 @@ func (b *execUpdateBuilder) ToSQL(s Schema) (*SQL, error) {
 	if b.ts != nil {
 		ts = *b.ts
 	}
-	elem := reflect.ValueOf(s).Elem()
+	elem := dereference(reflect.ValueOf(s))
 	for k, v := range meta.AutoUpdateTimeColumns {
 		if _, ok := specifyAutoUpdateTimeCol[k]; !ok {
 			f := elem.FieldByName(v)
@@ -259,4 +259,11 @@ func (b *execDeleteBuilder) Exec(ctx context.Context, s Schema) (sql.Result, err
 		return nil, err
 	}
 	return b.h.ExecContext(ctx, sql.Query, sql.Args...)
+}
+
+func dereference(v reflect.Value) reflect.Value {
+	if v.Kind() == reflect.Ptr {
+		v = v.Elem()
+	}
+	return v
 }
