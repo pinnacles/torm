@@ -1,10 +1,9 @@
 module github.com/pinnacles/torm
 
-go 1.20
+go 1.21
 
 require (
 	github.com/DATA-DOG/go-sqlmock v1.5.0
-	github.com/hashicorp/go-multierror v1.1.1
 	github.com/hatajoe/ttools v0.0.11
 	github.com/jmoiron/sqlx v1.3.4
 	github.com/sirupsen/logrus v1.8.1
@@ -12,7 +11,6 @@ require (
 
 require (
 	github.com/go-sql-driver/mysql v1.5.0 // indirect
-	github.com/hashicorp/errwrap v1.0.0 // indirect
 	github.com/shogo82148/go-sql-proxy v0.6.1 // indirect
 	golang.org/x/sys v0.0.0-20200323222414-85ca7c5b95cd // indirect
 )

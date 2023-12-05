@@ -1,9 +1,9 @@
 package torm
 
 import (
+	"errors"
 	"fmt"
 
-	multierror "github.com/hashicorp/go-multierror"
 	"github.com/jmoiron/sqlx"
 )
 
@@ -15,7 +15,7 @@ func Transaction(sql *sqlx.DB, proc Proc) (err error) {
 	defer func() {
 		if err != nil && tx != nil {
 			if e := tx.Rollback(); e != nil {
-				err = multierror.Append(err, fmt.Errorf("failed to rollback transaction: %v", e))
+				err = errors.Join(err, fmt.Errorf("failed to rollback transaction: %v", e))
 			}
 		}
 	}()
