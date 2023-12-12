@@ -18,7 +18,7 @@ func TestTransactionCommit(t *testing.T) {
 		mock.ExpectExec("INSERT INTO `test`").WithArgs(1, tm, tm).WillReturnResult(sqlmock.NewResult(1, 1))
 		mock.ExpectCommit()
 
-		if err := Transaction(db, func(tx *sqlx.Tx) error {
+		if err := Transaction(context.Background(), nil, db, func(tx *sqlx.Tx) error {
 			builder := NewBuilder(tx)
 			builder.SetTime(&tm)
 			_, err := builder.Insert().Exec(ctx, &test.TestSchema{Foo: 1, Bar: 2})
@@ -41,7 +41,7 @@ func TestTransactionRollback(t *testing.T) {
 		mock.ExpectExec("INSERT INTO `test`").WithArgs(1, tm, tm).WillReturnError(errors.New("insert error"))
 		mock.ExpectRollback()
 
-		if err := Transaction(db, func(tx *sqlx.Tx) error {
+		if err := Transaction(context.Background(), nil, db, func(tx *sqlx.Tx) error {
 			builder := NewBuilder(tx)
 			builder.SetTime(&tm)
 			_, err := builder.Insert().Exec(ctx, &test.TestSchema{Foo: 1, Bar: 2})
