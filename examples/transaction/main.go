@@ -6,10 +6,9 @@ import (
 	"log"
 
 	tsql "github.com/hatajoe/ttools/driver/sql"
+	_ "github.com/hatajoe/ttools/driver/sql/mysql"
 	"github.com/jmoiron/sqlx"
 	"github.com/pinnacles/torm"
-
-	_ "github.com/hatajoe/ttools/driver/sql/mysql"
 )
 
 var (
@@ -44,7 +43,7 @@ func main() {
 
 	builder := torm.NewBuilder(db)
 
-	must(torm.Transaction(db, func(tx *sqlx.Tx) error {
+	must(torm.Transaction(context.Background(), nil, db, func(tx *sqlx.Tx) error {
 		builder := torm.NewBuilder(tx)
 		must(insertUser(builder))
 		must(insertUsers(builder))
@@ -52,7 +51,7 @@ func main() {
 	}))
 	must(printUsers(builder))
 
-	must(torm.Transaction(db, func(tx *sqlx.Tx) error {
+	must(torm.Transaction(context.Background(), nil, db, func(tx *sqlx.Tx) error {
 		builder := torm.NewBuilder(tx)
 		must(updateUser(builder))
 		must(updateUsers(builder))
@@ -60,7 +59,7 @@ func main() {
 	}))
 	must(printUsers(builder))
 
-	must(torm.Transaction(db, func(tx *sqlx.Tx) error {
+	must(torm.Transaction(context.Background(), nil, db, func(tx *sqlx.Tx) error {
 		builder := torm.NewBuilder(tx)
 		must(deleteUser(builder))
 		must(deleteUsers(builder))

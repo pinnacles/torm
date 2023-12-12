@@ -1,6 +1,8 @@
 package torm
 
 import (
+	"context"
+	"database/sql"
 	"errors"
 	"fmt"
 
@@ -9,7 +11,7 @@ import (
 
 type Proc func(*sqlx.Tx) error
 
-func Transaction(sql *sqlx.DB, proc Proc) (err error) {
+func Transaction(ctx context.Context, opts *sql.TxOptions, sql *sqlx.DB, proc Proc) (err error) {
 	var tx *sqlx.Tx
 
 	defer func() {
@@ -20,7 +22,7 @@ func Transaction(sql *sqlx.DB, proc Proc) (err error) {
 		}
 	}()
 
-	tx, err = sql.Beginx()
+	tx, err = sql.BeginTxx(ctx, opts)
 	if err != nil {
 		return
 	}
